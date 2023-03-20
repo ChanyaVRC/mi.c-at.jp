@@ -365,7 +365,7 @@ export class UserEntityService implements OnModuleInit {
 			avatarUrl: this.getAvatarUrlSync(user),
 			avatarBlurhash: user.avatar?.blurhash ?? null,
 			isBot: user.isBot ?? falsy,
-			isCat: user.isCat ?? falsy,
+			isCat: user.host ? user.isCat ?? falsy : true,
 			instance: user.host ? this.userInstanceCache.fetch(user.host,
 				() => this.instancesRepository.findOneBy({ host: user.host! }),
 				v => v != null,
