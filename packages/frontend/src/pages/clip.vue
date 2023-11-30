@@ -1,14 +1,21 @@
+<!--
+SPDX-FileCopyrightText: syuilo and other misskey contributors
+SPDX-License-Identifier: AGPL-3.0-only
+-->
+
 <template>
 <MkStickyContainer>
 	<template #header><MkPageHeader :actions="headerActions"/></template>
-	<MkSpacer :content-max="800">
-		<div v-if="clip">
-			<div class="okzinsic _panel">
-				<div v-if="clip.description" class="description">
-					<Mfm :text="clip.description" :is-note="false" :i="$i"/>
+	<MkSpacer :contentMax="800">
+		<div v-if="clip" class="_gaps">
+			<div class="_panel">
+				<div v-if="clip.description" :class="$style.description">
+					<Mfm :text="clip.description" :isNote="false"/>
 				</div>
-				<div class="user">
-					<MkAvatar :user="clip.user" class="avatar" indicator link preview/> <MkUserName :user="clip.user" :nowrap="false"/>
+				<MkButton v-if="favorited" v-tooltip="i18n.ts.unfavorite" asLike rounded primary @click="unfavorite()"><i class="ti ti-heart"></i><span v-if="clip.favoritedCount > 0" style="margin-left: 6px;">{{ clip.favoritedCount }}</span></MkButton>
+				<MkButton v-else v-tooltip="i18n.ts.favorite" asLike rounded @click="favorite()"><i class="ti ti-heart"></i><span v-if="clip.favoritedCount > 0" style="margin-left: 6px;">{{ clip.favoritedCount }}</span></MkButton>
+				<div :class="$style.user">
+					<MkAvatar :user="clip.user" :class="$style.avatar" indicator link preview/> <MkUserName :user="clip.user" :nowrap="false"/>
 				</div>
 			</div>
 
@@ -20,19 +27,22 @@
 
 <script lang="ts" setup>
 import { computed, watch, provide } from 'vue';
-import * as misskey from 'misskey-js';
+import * as Misskey from 'misskey-js';
 import MkNotes from '@/components/MkNotes.vue';
-import { $i } from '@/account';
-import { i18n } from '@/i18n';
-import * as os from '@/os';
-import { definePageMetadata } from '@/scripts/page-metadata';
-import { url } from '@/config';
+import { $i } from '@/account.js';
+import { i18n } from '@/i18n.js';
+import * as os from '@/os.js';
+import { definePageMetadata } from '@/scripts/page-metadata.js';
+import { url } from '@/config.js';
+import MkButton from '@/components/MkButton.vue';
+import { clipsCache } from '@/cache';
 
 const props = defineProps<{
 	clipId: string,
 }>();
 
-let clip: misskey.entities.Clip = $ref<misskey.entities.Clip>();
+let clip: Misskey.entities.Clip = $ref<Misskey.entities.Clip>();
+let favorited = $ref(false);
 const pagination = {
 	endpoint: 'clips/notes' as const,
 	limit: 10,
@@ -47,11 +57,33 @@ watch(() => props.clipId, async () => {
 	clip = await os.api('clips/show', {
 		clipId: props.clipId,
 	});
+	favorited = clip.isFavorited;
 }, {
 	immediate: true,
-}); 
+});
 
-provide('currentClipPage', $$(clip));
+provide('currentClip', $$(clip));
+
+function favorite() {
+	os.apiWithDialog('clips/favorite', {
+		clipId: props.clipId,
+	}).then(() => {
+		favorited = true;
+	});
+}
+
+async function unfavorite() {
+	const confirm = await os.confirm({
+		type: 'warning',
+		text: i18n.ts.unfavoriteConfirm,
+	});
+	if (confirm.canceled) return;
+	os.apiWithDialog('clips/unfavorite', {
+		clipId: props.clipId,
+	}).then(() => {
+		favorited = false;
+	});
+}
 
 const headerActions = $computed(() => clip && isOwned ? [{
 	icon: 'ti ti-pencil',
@@ -82,6 +114,8 @@ const headerActions = $computed(() => clip && isOwned ? [{
 			clipId: clip.id,
 			...result,
 		});
+
+		clipsCache.delete();
 	},
 }, ...(clip.isPublic ? [{
 	icon: 'ti ti-share',
@@ -107,6 +141,8 @@ const headerActions = $computed(() => clip && isOwned ? [{
 		await os.apiWithDialog('clips/delete', {
 			clipId: clip.id,
 		});
+
+		clipsCache.delete();
 	},
 }] : null);
 
@@ -116,25 +152,20 @@ definePageMetadata(computed(() => clip ? {
 } : null));
 </script>
 
-<style lang="scss" scoped>
-.okzinsic {
-	position: relative;
-	margin-bottom: var(--margin);
+<style lang="scss" module>
+.description {
+	padding: 16px;
+}
 
-	> .description {
-		padding: 16px;
-	}
+.user {
+	--height: 32px;
+	padding: 16px;
+	border-top: solid 0.5px var(--divider);
+	line-height: var(--height);
+}
 
-	> .user {
-		$height: 32px;
-		padding: 16px;
-		border-top: solid 0.5px var(--divider);
-		line-height: $height;
-
-		> .avatar {
-			width: $height;
-			height: $height;
-		}
-	}
+.avatar {
+	width: var(--height);
+	height: var(--height);
 }
 </style>

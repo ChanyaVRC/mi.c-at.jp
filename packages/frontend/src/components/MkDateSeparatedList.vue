@@ -1,8 +1,15 @@
+<!--
+SPDX-FileCopyrightText: syuilo and other misskey contributors
+SPDX-License-Identifier: AGPL-3.0-only
+-->
+
 <script lang="ts">
 import { defineComponent, h, PropType, TransitionGroup, useCssModule } from 'vue';
 import MkAd from '@/components/global/MkAd.vue';
-import { i18n } from '@/i18n';
-import { defaultStore } from '@/store';
+import { isDebuggerEnabled, stackTraceInstances } from '@/debug';
+import { i18n } from '@/i18n.js';
+import * as os from '@/os.js';
+import { defaultStore } from '@/store.js';
 import { MisskeyEntity } from '@/types/date-separated-list';
 
 export default defineComponent({
@@ -34,7 +41,8 @@ export default defineComponent({
 	},
 
 	setup(props, { slots, expose }) {
-		const $style = useCssModule();
+		const $style = useCssModule(); // カスタムレンダラなので使っても大丈夫
+
 		function getDateText(time: string) {
 			const date = new Date(time).getDate();
 			const month = new Date(time).getMonth() + 1;
@@ -46,7 +54,7 @@ export default defineComponent({
 
 		if (props.items.length === 0) return;
 
-		const renderChildren = () => props.items.map((item, i) => {
+		const renderChildrenImpl = () => props.items.map((item, i) => {
 			if (!slots || !slots.default) return;
 
 			const el = slots.default({
@@ -95,10 +103,26 @@ export default defineComponent({
 			}
 		});
 
+		const renderChildren = () => {
+			const children = renderChildrenImpl();
+			if (isDebuggerEnabled(6864)) {
+				const nodes = children.flatMap((node) => node ?? []);
+				const keys = new Set(nodes.map((node) => node.key));
+				if (keys.size !== nodes.length) {
+					const id = crypto.randomUUID();
+					const instances = stackTraceInstances();
+					os.toast(instances.reduce((a, c) => `${a} at ${c.type.name}`, `[DEBUG_6864 (${id})]: ${nodes.length - keys.size} duplicated keys found`));
+					console.warn({ id, debugId: 6864, stack: instances });
+				}
+			}
+			return children;
+		};
+
 		function onBeforeLeave(el: HTMLElement) {
 			el.style.top = `${el.offsetTop}px`;
 			el.style.left = `${el.offsetLeft}px`;
 		}
+
 		function onLeaveCanceled(el: HTMLElement) {
 			el.style.top = '';
 			el.style.left = '';
@@ -146,10 +170,10 @@ export default defineComponent({
 	> *:empty {
 		display: none;
 	}
-
-	> *:not(:last-child) {
-		margin-bottom: var(--margin);
 	}
+
+	&:not(.date-separated-list-nogap) > *:not(:last-child) {
+		margin-bottom: var(--margin);
 	}
 }
 

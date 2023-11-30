@@ -1,7 +1,12 @@
+<!--
+SPDX-FileCopyrightText: syuilo and other misskey contributors
+SPDX-License-Identifier: AGPL-3.0-only
+-->
+
 <template>
 <div class="_gaps_m">
 	<MkInput v-model="name">
-		<template #label>Name</template>
+		<template #label>{{ i18n.ts._webhookSettings.name }}</template>
 	</MkInput>
 
 	<MkInput v-model="url" type="url">
@@ -10,24 +15,24 @@
 
 	<MkInput v-model="secret">
 		<template #prefix><i class="ti ti-lock"></i></template>
-		<template #label>Secret</template>
+		<template #label>{{ i18n.ts._webhookSettings.secret }}</template>
 	</MkInput>
 
 	<FormSection>
-		<template #label>Events</template>
+		<template #label>{{ i18n.ts._webhookSettings.events }}</template>
 
 		<div class="_gaps_s">
-			<MkSwitch v-model="event_follow">Follow</MkSwitch>
-			<MkSwitch v-model="event_followed">Followed</MkSwitch>
-			<MkSwitch v-model="event_note">Note</MkSwitch>
-			<MkSwitch v-model="event_reply">Reply</MkSwitch>
-			<MkSwitch v-model="event_renote">Renote</MkSwitch>
-			<MkSwitch v-model="event_reaction">Reaction</MkSwitch>
-			<MkSwitch v-model="event_mention">Mention</MkSwitch>
+			<MkSwitch v-model="event_follow">{{ i18n.ts._webhookSettings._events.follow }}</MkSwitch>
+			<MkSwitch v-model="event_followed">{{ i18n.ts._webhookSettings._events.followed }}</MkSwitch>
+			<MkSwitch v-model="event_note">{{ i18n.ts._webhookSettings._events.note }}</MkSwitch>
+			<MkSwitch v-model="event_reply">{{ i18n.ts._webhookSettings._events.reply }}</MkSwitch>
+			<MkSwitch v-model="event_renote">{{ i18n.ts._webhookSettings._events.renote }}</MkSwitch>
+			<MkSwitch v-model="event_reaction">{{ i18n.ts._webhookSettings._events.reaction }}</MkSwitch>
+			<MkSwitch v-model="event_mention">{{ i18n.ts._webhookSettings._events.mention }}</MkSwitch>
 		</div>
 	</FormSection>
 
-	<MkSwitch v-model="active">Active</MkSwitch>
+	<MkSwitch v-model="active">{{ i18n.ts._webhookSettings.active }}</MkSwitch>
 
 	<div class="_buttons">
 		<MkButton primary inline @click="save"><i class="ti ti-check"></i> {{ i18n.ts.save }}</MkButton>
@@ -42,10 +47,10 @@ import MkInput from '@/components/MkInput.vue';
 import FormSection from '@/components/form/section.vue';
 import MkSwitch from '@/components/MkSwitch.vue';
 import MkButton from '@/components/MkButton.vue';
-import * as os from '@/os';
-import { i18n } from '@/i18n';
-import { definePageMetadata } from '@/scripts/page-metadata';
-import { useRouter } from '@/router';
+import * as os from '@/os.js';
+import { i18n } from '@/i18n.js';
+import { definePageMetadata } from '@/scripts/page-metadata.js';
+import { useRouter } from '@/router.js';
 
 const router = useRouter();
 
@@ -103,6 +108,7 @@ async function del(): Promise<void> {
 
 	router.push('/settings/webhook');
 }
+
 const headerActions = $computed(() => []);
 
 const headerTabs = $computed(() => []);

@@ -1,26 +1,32 @@
+/*
+ * SPDX-FileCopyrightText: syuilo and other misskey contributors
+ * SPDX-License-Identifier: AGPL-3.0-only
+ */
+
 process.env.NODE_ENV = 'test';
 
 import * as assert from 'assert';
 import { signup, api, post, react, startServer, waitFire } from '../utils.js';
 import type { INestApplicationContext } from '@nestjs/common';
+import type * as misskey from 'misskey-js';
 
 describe('Mute', () => {
-	let p: INestApplicationContext;
+	let app: INestApplicationContext;
 
 	// alice mutes carol
-	let alice: any;
-	let bob: any;
-	let carol: any;
+	let alice: misskey.entities.MeSignup;
+	let bob: misskey.entities.MeSignup;
+	let carol: misskey.entities.MeSignup;
 
 	beforeAll(async () => {
-		p = await startServer();
+		app = await startServer();
 		alice = await signup({ username: 'alice' });
 		bob = await signup({ username: 'bob' });
 		carol = await signup({ username: 'carol' });
 	}, 1000 * 60 * 2);
 
 	afterAll(async () => {
-		await p.close();
+		await app.close();
 	});
 
 	test('ミュート作成', async () => {
@@ -76,9 +82,9 @@ describe('Mute', () => {
 
 	describe('Timeline', () => {
 		test('タイムラインにミュートしているユーザーの投稿が含まれない', async () => {
-			const aliceNote = await post(alice);
-			const bobNote = await post(bob);
-			const carolNote = await post(carol);
+			const aliceNote = await post(alice, { text: 'hi' });
+			const bobNote = await post(bob, { text: 'hi' });
+			const carolNote = await post(carol, { text: 'hi' });
 
 			const res = await api('/notes/local-timeline', {}, alice);
 
@@ -90,8 +96,8 @@ describe('Mute', () => {
 		});
 
 		test('タイムラインにミュートしているユーザーの投稿のRenoteが含まれない', async () => {
-			const aliceNote = await post(alice);
-			const carolNote = await post(carol);
+			const aliceNote = await post(alice, { text: 'hi' });
+			const carolNote = await post(carol, { text: 'hi' });
 			const bobNote = await post(bob, {
 				renoteId: carolNote.id,
 			});
@@ -108,7 +114,7 @@ describe('Mute', () => {
 
 	describe('Notification', () => {
 		test('通知にミュートしているユーザーの通知が含まれない(リアクション)', async () => {
-			const aliceNote = await post(alice);
+			const aliceNote = await post(alice, { text: 'hi' });
 			await react(bob, aliceNote, 'like');
 			await react(carol, aliceNote, 'like');
 

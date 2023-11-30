@@ -1,10 +1,15 @@
+<!--
+SPDX-FileCopyrightText: syuilo and other misskey contributors
+SPDX-License-Identifier: AGPL-3.0-only
+-->
+
 <template>
-<MkContainer :show-header="widgetProps.showHeader" :naked="widgetProps.transparent">
+<MkContainer :showHeader="widgetProps.showHeader" :naked="widgetProps.transparent">
 	<template #icon><i class="ti ti-server"></i></template>
 	<template #header>{{ i18n.ts._widgets.serverMetric }}</template>
 	<template #func="{ buttonStyleClass }"><button class="_button" :class="buttonStyleClass" @click="toggleView()"><i class="ti ti-selector"></i></button></template>
 
-	<div v-if="meta" class="mkw-serverMetric data-cy-mkw-serverMetric">
+	<div v-if="meta" data-cy-mkw-serverMetric class="mkw-serverMetric">
 		<XCpuMemory v-if="widgetProps.view === 0" :connection="connection" :meta="meta"/>
 		<XNet v-else-if="widgetProps.view === 1" :connection="connection" :meta="meta"/>
 		<XCpu v-else-if="widgetProps.view === 2" :connection="connection" :meta="meta"/>
@@ -23,10 +28,10 @@ import XCpu from './cpu.vue';
 import XMemory from './mem.vue';
 import XDisk from './disk.vue';
 import MkContainer from '@/components/MkContainer.vue';
-import { GetFormResultType } from '@/scripts/form';
-import * as os from '@/os';
-import { stream } from '@/stream';
-import { i18n } from '@/i18n';
+import { GetFormResultType } from '@/scripts/form.js';
+import * as os from '@/os.js';
+import { useStream } from '@/stream.js';
+import { i18n } from '@/i18n.js';
 
 const name = 'serverMetric';
 
@@ -62,7 +67,7 @@ const { widgetProps, configure, save } = useWidgetPropsManager(name,
 
 const meta = ref(null);
 
-os.api('server-info', {}).then(res => {
+os.apiGet('server-info', {}).then(res => {
 	meta.value = res;
 });
 
@@ -75,7 +80,7 @@ const toggleView = () => {
 	save();
 };
 
-const connection = stream.useChannel('serverStats');
+const connection = useStream().useChannel('serverStats');
 onUnmounted(() => {
 	connection.dispose();
 });

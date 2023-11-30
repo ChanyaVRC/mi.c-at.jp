@@ -1,10 +1,15 @@
+/*
+ * SPDX-FileCopyrightText: syuilo and other misskey contributors
+ * SPDX-License-Identifier: AGPL-3.0-only
+ */
+
 import { AsyncComponentLoader, defineAsyncComponent, inject } from 'vue';
-import { Router } from '@/nirax';
-import { $i, iAmModerator } from '@/account';
+import { Router } from '@/nirax.js';
+import { $i, iAmModerator } from '@/account.js';
 import MkLoading from '@/pages/_loading_.vue';
 import MkError from '@/pages/_error_.vue';
 
-const page = (loader: AsyncComponentLoader<any>) => defineAsyncComponent({
+export const page = (loader: AsyncComponentLoader<any>) => defineAsyncComponent({
 	loader: loader,
 	loadingComponent: MkLoading,
 	errorComponent: MkError,
@@ -31,12 +36,12 @@ export const routes = [{
 	path: '/notes/:noteId',
 	component: page(() => import('./pages/note.vue')),
 }, {
+	name: 'list',
+	path: '/list/:listId',
+	component: page(() => import('./pages/list.vue')),
+}, {
 	path: '/clips/:clipId',
 	component: page(() => import('./pages/clip.vue')),
-}, {
-	path: '/user-info/:userId',
-	component: page(() => import('./pages/user-info.vue')),
-	hash: 'initialTab',
 }, {
 	path: '/instance-info/:host',
 	component: page(() => import('./pages/instance-info.vue')),
@@ -50,6 +55,10 @@ export const routes = [{
 		name: 'profile',
 		component: page(() => import('./pages/settings/profile.vue')),
 	}, {
+		path: '/roles',
+		name: 'roles',
+		component: page(() => import('./pages/settings/roles.vue')),
+	}, {
 		path: '/privacy',
 		name: 'privacy',
 		component: page(() => import('./pages/settings/privacy.vue')),
@@ -61,6 +70,10 @@ export const routes = [{
 		path: '/drive',
 		name: 'drive',
 		component: page(() => import('./pages/settings/drive.vue')),
+	}, {
+		path: '/drive/cleaner',
+		name: 'drive',
+		component: page(() => import('./pages/settings/drive-cleaner.vue')),
 	}, {
 		path: '/notifications',
 		name: 'notifications',
@@ -114,17 +127,9 @@ export const routes = [{
 		name: 'import-export',
 		component: page(() => import('./pages/settings/import-export.vue')),
 	}, {
-		path: '/instance-mute',
-		name: 'instance-mute',
-		component: page(() => import('./pages/settings/instance-mute.vue')),
-	}, {
 		path: '/mute-block',
 		name: 'mute-block',
 		component: page(() => import('./pages/settings/mute-block.vue')),
-	}, {
-		path: '/word-mute',
-		name: 'word-mute',
-		component: page(() => import('./pages/settings/word-mute.vue')),
 	}, {
 		path: '/api',
 		name: 'api',
@@ -154,6 +159,10 @@ export const routes = [{
 		name: 'preferences-backups',
 		component: page(() => import('./pages/settings/preferences-backups.vue')),
 	}, {
+		path: '/migration',
+		name: 'migration',
+		component: page(() => import('./pages/settings/migration.vue')),
+	}, {
 		path: '/custom-css',
 		name: 'general',
 		component: page(() => import('./pages/settings/custom-css.vue')),
@@ -161,14 +170,6 @@ export const routes = [{
 		path: '/accounts',
 		name: 'profile',
 		component: page(() => import('./pages/settings/accounts.vue')),
-	}, {
-		path: '/account-info',
-		name: 'other',
-		component: page(() => import('./pages/settings/account-info.vue')),
-	}, {
-		path: '/delete-account',
-		name: 'other',
-		component: page(() => import('./pages/settings/delete-account.vue')),
 	}, {
 		path: '/other',
 		name: 'other',
@@ -193,6 +194,13 @@ export const routes = [{
 }, {
 	path: '/about-misskey',
 	component: page(() => import('./pages/about-misskey.vue')),
+}, {
+	path: '/invite',
+	name: 'invite',
+	component: page(() => import('./pages/invite.vue')),
+}, {
+	path: '/ads',
+	component: page(() => import('./pages/ads.vue')),
 }, {
 	path: '/theme-editor',
 	component: page(() => import('./pages/theme-editor.vue')),
@@ -232,9 +240,6 @@ export const routes = [{
 	path: '/scratchpad',
 	component: page(() => import('./pages/scratchpad.vue')),
 }, {
-	path: '/preview',
-	component: page(() => import('./pages/preview.vue')),
-}, {
 	path: '/auth/:token',
 	component: page(() => import('./pages/auth.vue')),
 }, {
@@ -246,6 +251,9 @@ export const routes = [{
 		icon: 'icon',
 		permission: 'permission',
 	},
+}, {
+	path: '/oauth/authorize',
+	component: page(() => import('./pages/oauth.vue')),
 }, {
 	path: '/tags/:tag',
 	component: page(() => import('./pages/tag.vue')),
@@ -306,14 +314,25 @@ export const routes = [{
 	path: '/custom-emojis-manager',
 	component: page(() => import('./pages/custom-emojis-manager.vue')),
 }, {
-	path: '/registry/keys/system/:path(*)?',
+	path: '/avatar-decorations',
+	name: 'avatarDecorations',
+	component: page(() => import('./pages/avatar-decorations.vue')),
+}, {
+	path: '/registry/keys/:domain/:path(*)?',
 	component: page(() => import('./pages/registry.keys.vue')),
 }, {
-	path: '/registry/value/system/:path(*)?',
+	path: '/registry/value/:domain/:path(*)?',
 	component: page(() => import('./pages/registry.value.vue')),
 }, {
 	path: '/registry',
 	component: page(() => import('./pages/registry.vue')),
+}, {
+	path: '/install-extentions',
+	component: page(() => import('./pages/install-extentions.vue')),
+	loginRequired: true,
+}, {
+	path: '/admin/user/:userId',
+	component: iAmModerator ? page(() => import('./pages/admin-user.vue')) : page(() => import('./pages/not-found.vue')),
 }, {
 	path: '/admin/file/:fileId',
 	component: iAmModerator ? page(() => import('./pages/admin-file.vue')) : page(() => import('./pages/not-found.vue')),
@@ -332,6 +351,10 @@ export const routes = [{
 		path: '/emojis',
 		name: 'emojis',
 		component: page(() => import('./pages/custom-emojis-manager.vue')),
+	}, {
+		path: '/avatar-decorations',
+		name: 'avatarDecorations',
+		component: page(() => import('./pages/avatar-decorations.vue')),
 	}, {
 		path: '/queue',
 		name: 'queue',
@@ -377,9 +400,21 @@ export const routes = [{
 		name: 'abuses',
 		component: page(() => import('./pages/admin/abuses.vue')),
 	}, {
+		path: '/modlog',
+		name: 'modlog',
+		component: page(() => import('./pages/admin/modlog.vue')),
+	}, {
 		path: '/settings',
 		name: 'settings',
 		component: page(() => import('./pages/admin/settings.vue')),
+	}, {
+		path: '/branding',
+		name: 'branding',
+		component: page(() => import('./pages/admin/branding.vue')),
+	}, {
+		path: '/moderation',
+		name: 'moderation',
+		component: page(() => import('./pages/admin/moderation.vue')),
 	}, {
 		path: '/email-settings',
 		name: 'email-settings',
@@ -405,9 +440,21 @@ export const routes = [{
 		name: 'proxy-account',
 		component: page(() => import('./pages/admin/proxy-account.vue')),
 	}, {
+		path: '/external-services',
+		name: 'external-services',
+		component: page(() => import('./pages/admin/external-services.vue')),
+	}, {
 		path: '/other-settings',
 		name: 'other-settings',
 		component: page(() => import('./pages/admin/other-settings.vue')),
+	}, {
+		path: '/server-rules',
+		name: 'server-rules',
+		component: page(() => import('./pages/admin/server-rules.vue')),
+	}, {
+		path: '/invites',
+		name: 'invites',
+		component: page(() => import('./pages/admin/invites.vue')),
 	}, {
 		path: '/',
 		component: page(() => import('./pages/_empty_.vue')),
@@ -431,6 +478,10 @@ export const routes = [{
 }, {
 	path: '/my/drive',
 	component: page(() => import('./pages/drive.vue')),
+	loginRequired: true,
+}, {
+	path: '/my/drive/file/:fileId',
+	component: page(() => import('./pages/drive.file.vue')),
 	loginRequired: true,
 }, {
 	path: '/my/follow-requests',
@@ -485,45 +536,16 @@ export const routes = [{
 	component: page(() => import('./pages/not-found.vue')),
 }];
 
-export const mainRouter = new Router(routes, location.pathname + location.search + location.hash);
+export const mainRouter = new Router(routes, location.pathname + location.search + location.hash, !!$i, page(() => import('@/pages/not-found.vue')));
 
 window.history.replaceState({ key: mainRouter.getCurrentKey() }, '', location.href);
 
-// TODO: このファイルでスクロール位置も管理する設計だとdeckに対応できないのでなんとかする
-// スクロール位置取得+スクロール位置設定関数をprovideする感じでも良いかも
-
-const scrollPosStore = new Map<string, number>();
-
-window.setInterval(() => {
-	scrollPosStore.set(window.history.state?.key, window.scrollY);
-}, 1000);
-
 mainRouter.addListener('push', ctx => {
 	window.history.pushState({ key: ctx.key }, '', ctx.path);
-	const scrollPos = scrollPosStore.get(ctx.key) ?? 0;
-	window.scroll({ top: scrollPos, behavior: 'instant' });
-	if (scrollPos !== 0) {
-		window.setTimeout(() => { // 遷移直後はタイミングによってはコンポーネントが復元し切ってない可能性も考えられるため少し時間を空けて再度スクロール
-			window.scroll({ top: scrollPos, behavior: 'instant' });
-		}, 100);
-	}
-});
-
-mainRouter.addListener('replace', ctx => {
-	window.history.replaceState({ key: ctx.key }, '', ctx.path);
-});
-
-mainRouter.addListener('same', () => {
-	window.scroll({ top: 0, behavior: 'smooth' });
 });
 
 window.addEventListener('popstate', (event) => {
-	mainRouter.replace(location.pathname + location.search + location.hash, event.state?.key, false);
-	const scrollPos = scrollPosStore.get(event.state?.key) ?? 0;
-	window.scroll({ top: scrollPos, behavior: 'instant' });
-	window.setTimeout(() => { // 遷移直後はタイミングによってはコンポーネントが復元し切ってない可能性も考えられるため少し時間を空けて再度スクロール
-		window.scroll({ top: scrollPos, behavior: 'instant' });
-	}, 100);
+	mainRouter.replace(location.pathname + location.search + location.hash, event.state?.key);
 });
 
 export function useRouter(): Router {
