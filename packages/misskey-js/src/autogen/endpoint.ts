@@ -1239,6 +1239,8 @@ export const endpointReqTypes: Record<keyof Endpoints, 'application/json' | 'mul
 	'notes/favorites/delete': 'application/json',
 	'notes/featured': 'application/json',
 	'notes/global-timeline': 'application/json',
+	'notes/vmimi-relay-timeline': 'application/json',
+	'notes/vmimi-relay-hybrid-timeline': 'application/json',
 	'notes/hybrid-timeline': 'application/json',
 	'notes/local-timeline': 'application/json',
 	'notes/mentions': 'application/json',

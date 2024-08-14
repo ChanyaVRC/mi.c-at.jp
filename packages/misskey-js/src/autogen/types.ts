@@ -2690,7 +2690,7 @@ export type paths = {
      *
      * **Credential required**: *No*
      */
-    post: operations['notes/vmimi-relay-timeline'];
+    post: operations['notes___vmimi-relay-timeline'];
   };
   '/notes/vmimi-relay-hybrid-timeline': {
     /**
@@ -2699,7 +2699,7 @@ export type paths = {
      *
      * **Credential required**: *Yes* / **Permission**: *read:account*
      */
-    post: operations['notes/vmimi-relay-hybrid-timeline'];
+    post: operations['notes___vmimi-relay-hybrid-timeline'];
   };
   '/notes/hybrid-timeline': {
     /**
@@ -21603,7 +21603,7 @@ export type operations = {
    *
    * **Credential required**: *No*
    */
-  'notes/vmimi-relay-timeline': {
+  'notes___vmimi-relay-timeline': {
     requestBody: {
       content: {
         'application/json': {
@@ -21613,6 +21613,8 @@ export type operations = {
           withRenotes?: boolean;
           /** @default false */
           withReplies?: boolean;
+          /** @default true */
+          withLocalOnly?: boolean;
           /** @default 10 */
           limit?: number;
           /** @default true */
@@ -21671,7 +21673,7 @@ export type operations = {
    *
    * **Credential required**: *Yes* / **Permission**: *read:account*
    */
-  'notes/vmimi-relay-hybrid-timeline': {
+  'notes___vmimi-relay-hybrid-timeline': {
     requestBody: {
       content: {
         'application/json': {
@@ -21681,6 +21683,8 @@ export type operations = {
           withRenotes?: boolean;
           /** @default false */
           withReplies?: boolean;
+          /** @default true */
+          withLocalOnly?: boolean;
           /** @default 10 */
           limit?: number;
           /** @default true */
