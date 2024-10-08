@@ -20,12 +20,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<MkTimeline
 		v-else-if="column.tl"
 		ref="timeline"
-		:key="column.tl + withRenotes + withReplies + onlyFiles + withLocalOnly"
+		:key="column.tl + withRenotes + withReplies + onlyFiles"
 		:src="column.tl"
 		:withRenotes="withRenotes"
 		:withReplies="withReplies"
 		:onlyFiles="onlyFiles"
-		:withLocalOnly="withLocalOnly"
 		@note="onNote"
 	/>
 </XColumn>
@@ -39,7 +38,7 @@ import type { MenuItem } from '@/types/menu.js';
 import MkTimeline from '@/components/MkTimeline.vue';
 import * as os from '@/os.js';
 import { i18n } from '@/i18n.js';
-import { hasWithReplies, isAvailableBasicTimeline, basicTimelineIconClass, hasWithLocalOnly } from '@/timelines.js';
+import { hasWithReplies, isAvailableBasicTimeline, basicTimelineIconClass } from '@/timelines.js';
 import { instance } from '@/instance.js';
 import { SoundStore } from '@/store.js';
 import { soundSettingsButton } from '@/ui/deck/tl-note-notification.js';
@@ -56,7 +55,6 @@ const soundSetting = ref<SoundStore>(props.column.soundSetting ?? { type: null, 
 const withRenotes = ref(props.column.withRenotes ?? true);
 const withReplies = ref(props.column.withReplies ?? false);
 const onlyFiles = ref(props.column.onlyFiles ?? false);
-const withLocalOnly = ref(props.column.withLocalOnly ?? true);
 
 watch(withRenotes, v => {
 	updateColumn(props.column.id, {
@@ -73,12 +71,6 @@ watch(withReplies, v => {
 watch(onlyFiles, v => {
 	updateColumn(props.column.id, {
 		onlyFiles: v,
-	});
-});
-
-watch(withLocalOnly, v => {
-	updateColumn(props.column.id, {
-		withLocalOnly: v,
 	});
 });
 
@@ -103,10 +95,6 @@ async function setType() {
 			value: 'social' as const, text: i18n.ts._timelines.social,
 		}, {
 			value: 'global' as const, text: i18n.ts._timelines.global,
-		}, {
-			value: 'vmimi-relay' as const, text: i18n.ts._timelines.vmimiRelay,
-		}, {
-			value: 'vmimi-relay-social' as const, text: i18n.ts._timelines.vmimiRelaySocial,
 		}],
 	});
 	if (canceled) {
@@ -125,33 +113,41 @@ function onNote() {
 	sound.playMisskeySfxFile(soundSetting.value);
 }
 
-const menu = computed<MenuItem[]>(() => [{
-	icon: 'ti ti-pencil',
-	text: i18n.ts.timeline,
-	action: setType,
-}, {
-	icon: 'ti ti-bell',
-	text: i18n.ts._deck.newNoteNotificationSettings,
-	action: () => soundSettingsButton(soundSetting),
-}, {
-	type: 'switch',
-	text: i18n.ts.showRenotes,
-	ref: withRenotes,
-}, hasWithReplies(props.column.tl) ? {
-	type: 'switch',
-	text: i18n.ts.showRepliesToOthersInTimeline,
-	ref: withReplies,
-	disabled: onlyFiles,
-} : undefined, {
-	type: 'switch',
-	text: i18n.ts.fileAttachedOnly,
-	ref: onlyFiles,
-	disabled: hasWithReplies(props.column.tl) ? withReplies : false,
-}, hasWithLocalOnly(props.column.tl) ? {
-	type: 'switch',
-	text: i18n.ts.showLocalOnlyInTimeline,
-	ref: withLocalOnly,
-} : undefined]);
+const menu = computed<MenuItem[]>(() => {
+	const menuItems: MenuItem[] = [];
+
+	menuItems.push({
+		icon: 'ti ti-pencil',
+		text: i18n.ts.timeline,
+		action: setType,
+	}, {
+		icon: 'ti ti-bell',
+		text: i18n.ts._deck.newNoteNotificationSettings,
+		action: () => soundSettingsButton(soundSetting),
+	}, {
+		type: 'switch',
+		text: i18n.ts.showRenotes,
+		ref: withRenotes,
+	});
+
+	if (hasWithReplies(props.column.tl)) {
+		menuItems.push({
+			type: 'switch',
+			text: i18n.ts.showRepliesToOthersInTimeline,
+			ref: withReplies,
+			disabled: onlyFiles,
+		});
+	}
+
+	menuItems.push({
+		type: 'switch',
+		text: i18n.ts.fileAttachedOnly,
+		ref: onlyFiles,
+		disabled: hasWithReplies(props.column.tl) ? withReplies : false,
+	});
+
+	return menuItems;
+});
 </script>
 
 <style lang="scss" module>
