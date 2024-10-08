@@ -658,6 +658,30 @@ export type Channels = {
         };
         receives: null;
     };
+    vmimiRelayTimeline: {
+        params: {
+            withRenotes?: boolean;
+            withFiles?: boolean;
+            withReplies?: boolean;
+            withLocalOnly?: boolean;
+        };
+        events: {
+            note: (payload: Note) => void;
+        };
+        receives: null;
+    };
+    vmimiRelayHybridTimeline: {
+        params: {
+            withRenotes?: boolean;
+            withReplies?: boolean;
+            withFiles?: boolean;
+            withLocalOnly?: boolean;
+        };
+        events: {
+            note: (payload: Note) => void;
+        };
+        receives: null;
+    };
     userList: {
         params: {
             listId: string;
@@ -1617,6 +1641,10 @@ declare namespace entities {
         NotesFeaturedResponse,
         NotesGlobalTimelineRequest,
         NotesGlobalTimelineResponse,
+        NotesVmimiRelayTimelineRequest,
+        NotesVmimiRelayTimelineResponse,
+        NotesVmimiRelayHybridTimelineRequest,
+        NotesVmimiRelayHybridTimelineResponse,
         NotesHybridTimelineRequest,
         NotesHybridTimelineResponse,
         NotesLocalTimelineRequest,
@@ -2760,6 +2788,18 @@ type NotesUserListTimelineRequest = operations['notes___user-list-timeline']['re
 
 // @public (undocumented)
 type NotesUserListTimelineResponse = operations['notes___user-list-timeline']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type NotesVmimiRelayHybridTimelineRequest = operations['notes___vmimi-relay-hybrid-timeline']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type NotesVmimiRelayHybridTimelineResponse = operations['notes___vmimi-relay-hybrid-timeline']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type NotesVmimiRelayTimelineRequest = operations['notes___vmimi-relay-timeline']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type NotesVmimiRelayTimelineResponse = operations['notes___vmimi-relay-timeline']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
 export const noteVisibilities: readonly ["public", "home", "followers", "specified"];
