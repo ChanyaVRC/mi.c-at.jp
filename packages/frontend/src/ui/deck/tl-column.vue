@@ -95,6 +95,10 @@ async function setType() {
 			value: 'social' as const, text: i18n.ts._timelines.social,
 		}, {
 			value: 'global' as const, text: i18n.ts._timelines.global,
+		}, {
+			value: 'vmimi-relay' as const, text: i18n.ts._timelines['vmimi-relay'],
+		}, {
+			value: 'vmimi-relay-social' as const, text: i18n.ts._timelines['vmimi-relay-social'],
 		}],
 	});
 	if (canceled) {
@@ -145,6 +149,14 @@ const menu = computed<MenuItem[]>(() => {
 		ref: onlyFiles,
 		disabled: hasWithReplies(props.column.tl) ? withReplies : false,
 	});
+
+	if (hasWithLocalOnly(props.column.tl)) {
+		menuItems.push({
+			type: 'switch',
+			text: i18n.ts.showLocalOnlyInTimeline,
+			ref: withLocalOnly,
+		});
+	}
 
 	return menuItems;
 });

@@ -955,9 +955,9 @@ export class NoteCreateService implements OnApplicationShutdown {
 					}
 				}
 				if (note.visibility === 'public' && this.vmimiRelayTimelineService.isRelayedInstance(note.userHost) && !note.localOnly) {
-					this.fanoutTimelineService.push('vmimiRelayTimelineWithReplies', note.id, meta.vmimiRelayTimelineCacheMax, r);
+					this.fanoutTimelineService.push('vmimiRelayTimelineWithReplies', note.id, this.meta.vmimiRelayTimelineCacheMax, r);
 					if (note.replyUserHost == null) {
-						this.fanoutTimelineService.push(`vmimiRelayTimelineWithReplyTo:${note.replyUserId}`, note.id, meta.vmimiRelayTimelineCacheMax / 10, r);
+						this.fanoutTimelineService.push(`vmimiRelayTimelineWithReplyTo:${note.replyUserId}`, note.id, this.meta.vmimiRelayTimelineCacheMax / 10, r);
 					}
 				}
 			} else {
@@ -973,9 +973,9 @@ export class NoteCreateService implements OnApplicationShutdown {
 					}
 				}
 				if (note.visibility === 'public' && this.vmimiRelayTimelineService.isRelayedInstance(note.userHost) && !note.localOnly) {
-					this.fanoutTimelineService.push('vmimiRelayTimeline', note.id, meta.vmimiRelayTimelineCacheMax, r);
+					this.fanoutTimelineService.push('vmimiRelayTimeline', note.id, this.meta.vmimiRelayTimelineCacheMax, r);
 					if (note.fileIds.length > 0) {
-						this.fanoutTimelineService.push('vmimiRelayTimelineWithFiles', note.id, meta.vmimiRelayTimelineCacheMax / 2, r);
+						this.fanoutTimelineService.push('vmimiRelayTimelineWithFiles', note.id, this.meta.vmimiRelayTimelineCacheMax / 2, r);
 					}
 				}
 			}
