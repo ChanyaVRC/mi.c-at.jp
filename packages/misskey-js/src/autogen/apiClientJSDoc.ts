@@ -3288,28 +3288,6 @@ declare module '../api.js' {
     /**
      * No description provided.
      * 
-     * **Credential required**: *No*
-     */
-    request<E extends 'notes/vmimi-relay-timeline', P extends Endpoints[E]['req']>(
-      endpoint: E,
-      params: P,
-      credential?: string | null,
-    ): Promise<SwitchCaseResponseType<E, P>>;
-
-    /**
-     * No description provided.
-     * 
-     * **Credential required**: *Yes* / **Permission**: *read:account*
-     */
-    request<E extends 'notes/vmimi-relay-hybrid-timeline', P extends Endpoints[E]['req']>(
-      endpoint: E,
-      params: P,
-      credential?: string | null,
-    ): Promise<SwitchCaseResponseType<E, P>>;
-
-    /**
-     * No description provided.
-     * 
      * **Credential required**: *Yes* / **Permission**: *read:account*
      */
     request<E extends 'notes/hybrid-timeline', P extends Endpoints[E]['req']>(
@@ -3522,6 +3500,28 @@ declare module '../api.js' {
      * **Credential required**: *Yes* / **Permission**: *read:account*
      */
     request<E extends 'notes/user-list-timeline', P extends Endpoints[E]['req']>(
+      endpoint: E,
+      params: P,
+      credential?: string | null,
+    ): Promise<SwitchCaseResponseType<E, P>>;
+
+    /**
+     * No description provided.
+     * 
+     * **Credential required**: *Yes* / **Permission**: *read:account*
+     */
+    request<E extends 'notes/vmimi-relay-hybrid-timeline', P extends Endpoints[E]['req']>(
+      endpoint: E,
+      params: P,
+      credential?: string | null,
+    ): Promise<SwitchCaseResponseType<E, P>>;
+
+    /**
+     * No description provided.
+     * 
+     * **Credential required**: *No*
+     */
+    request<E extends 'notes/vmimi-relay-timeline', P extends Endpoints[E]['req']>(
       endpoint: E,
       params: P,
       credential?: string | null,
