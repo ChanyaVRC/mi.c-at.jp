@@ -63,6 +63,7 @@ type TimelineQueryType = {
 	withRenotes?: boolean,
 	withReplies?: boolean,
 	withFiles?: boolean,
+	withLocalOnly?: boolean,
 	visibility?: string,
 	listId?: string,
 	channelId?: string,
