@@ -12,7 +12,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<MkPostForm v-if="prefer.r.showFixedPostForm.value" :class="$style.postForm" class="_panel" fixed style="margin-bottom: var(--MI-margin);"/>
 		<MkStreamingNotesTimeline
 			ref="tlComponent"
-			:key="src + withRenotes + withReplies + onlyFiles + withSensitive"
+			:key="src + withRenotes + withReplies + onlyFiles + withLocalOnly + withSensitive"
 			:class="$style.tl"
 			:src="(src.split(':')[0] as (BasicTimelineType | 'list'))"
 			:list="src.split(':')[1]"
@@ -20,6 +20,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 			:withReplies="withReplies"
 			:withSensitive="withSensitive"
 			:onlyFiles="onlyFiles"
+			:withLocalOnly="withLocalOnly"
 			:sound="true"
 		/>
 	</div>
@@ -42,14 +43,14 @@ import { antennasCache, userListsCache, favoritedChannelsCache } from '@/cache.j
 import { deviceKind } from '@/utility/device-kind.js';
 import { deepMerge } from '@/utility/merge.js';
 import { miLocalStorage } from '@/local-storage.js';
-import { availableBasicTimelines, hasWithReplies, isAvailableBasicTimeline, isBasicTimeline, basicTimelineIconClass } from '@/timelines.js';
+import { availableBasicTimelines, hasWithReplies, hasWithLocalOnly, isAvailableBasicTimeline, isBasicTimeline, basicTimelineIconClass } from '@/timelines.js';
 import { prefer } from '@/preferences.js';
 
 const tlComponent = useTemplateRef('tlComponent');
 
 type TimelinePageSrc = BasicTimelineType | `list:${string}`;
 
-const srcWhenNotSignin = ref<'local' | 'global'>(isAvailableBasicTimeline('local') ? 'local' : 'global');
+const srcWhenNotSignin = ref<'local' | 'global' | 'vmimi-relay'>(isAvailableBasicTimeline('local') ? 'local' : 'global');
 const src = computed<TimelinePageSrc>({
 	get: () => ($i ? store.r.tl.value.src : srcWhenNotSignin.value),
 	set: (x) => saveSrc(x),
@@ -59,7 +60,7 @@ const withRenotes = computed<boolean>({
 	set: (x) => saveTlFilter('withRenotes', x),
 });
 const withLocalOnly = computed<boolean>({
-	get: () => defaultStore.reactiveState.tl.value.filter.withLocalOnly,
+	get: () => store.r.tl.value.filter.withLocalOnly,
 	set: (x) => saveTlFilter('withLocalOnly', x),
 });
 
@@ -182,7 +183,7 @@ function saveSrc(newSrc: TimelinePageSrc): void {
 	}
 
 	store.set('tl', out);
-	if (['local', 'global'].includes(newSrc)) {
+	if (['local', 'global', 'vmimi-relay'].includes(newSrc)) {
 		srcWhenNotSignin.value = newSrc as 'local' | 'global' | 'vmimi-relay';
 	}
 }
@@ -249,6 +250,14 @@ const headerActions = computed(() => {
 				text: i18n.ts.showFixedPostForm,
 				ref: showFixedPostForm,
 			});
+
+			if (isBasicTimeline(src.value) && hasWithLocalOnly(src.value)) {
+				menuItems.push({
+					type: 'switch',
+					text: i18n.ts.showLocalOnlyInTimeline,
+					ref: withLocalOnly,
+				});
+			}
 
 			os.popupMenu(menuItems, ev.currentTarget ?? ev.target);
 		},

@@ -19,6 +19,9 @@ import { MetaService } from '@/core/MetaService.js';
 import { IdService } from '@/core/IdService.js';
 import { UserFollowingService } from '@/core/UserFollowingService.js';
 import { FanoutTimelineName } from '@/core/FanoutTimelineService.js';
+import { CacheService } from '@/core/CacheService.js';
+import { ChannelMutingService } from '@/core/ChannelMutingService.js';
+import { ChannelFollowingService } from '@/core/ChannelFollowingService.js';
 import { ApiError } from '../../error.js';
 
 export const meta = {
@@ -84,7 +87,10 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		private idService: IdService,
 		private vmimiRelayTimelineService: VmimiRelayTimelineService,
 		private userFollowingService: UserFollowingService,
+		private channelMutingService: ChannelMutingService,
+		private channelFollowingService: ChannelFollowingService,
 		private fanoutTimelineEndpointService: FanoutTimelineEndpointService,
+		private cacheService: CacheService,
 		private metaService: MetaService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
@@ -141,6 +147,12 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				if (ps.withLocalOnly) timelineConfig = [...timelineConfig, 'localTimeline', `localTimelineWithReplyTo:${me.id}`];
 			}
 
+			const [
+				followings,
+			] = await Promise.all([
+				this.cacheService.userFollowingsCache.fetch(me.id),
+			]);
+
 			const redisTimeline = await this.fanoutTimelineEndpointService.timeline({
 				untilId,
 				sinceId,
@@ -151,6 +163,13 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				useDbFallback: serverSettings.enableFanoutTimelineDbFallback,
 				alwaysIncludeMyNotes: true,
 				excludePureRenotes: !ps.withRenotes,
+				noteFilter: note => {
+					if (note.reply && note.reply.visibility === 'followers') {
+						if (!Object.hasOwn(followings, note.reply.userId) && note.reply.userId !== me.id) return false;
+					}
+
+					return true;
+				},
 				dbFallback: async (untilId, sinceId, limit) => await this.getFromDb({
 					untilId,
 					sinceId,
@@ -178,11 +197,14 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		withLocalOnly: boolean,
 	}, me: MiLocalUser) {
 		const followees = await this.userFollowingService.getFollowees(me.id);
-		const followingChannels = await this.channelFollowingsRepository.find({
-			where: {
-				followerId: me.id,
-			},
-		});
+
+		const mutingChannelIds = await this.channelMutingService
+			.list({ requestUserId: me.id }, { idOnly: true })
+			.then(x => x.map(x => x.id));
+		const followingChannelIds = await this.channelFollowingService
+			.list({ requestUserId: me.id }, { idOnly: true })
+			.then(x => x.map(x => x.id).filter(x => !mutingChannelIds.includes(x)));
+
 		const vmimiRelayInstances = this.vmimiRelayTimelineService.hostNames;
 
 		const query = this.queryService.makePaginationQuery(this.notesRepository.createQueryBuilder('note'), ps.sinceId, ps.untilId)
@@ -220,15 +242,20 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			.leftJoinAndSelect('reply.user', 'replyUser')
 			.leftJoinAndSelect('renote.user', 'renoteUser');
 
-		if (followingChannels.length > 0) {
-			const followingChannelIds = followingChannels.map(x => x.followeeId);
-
+		if (followingChannelIds.length > 0) {
 			query.andWhere(new Brackets(qb => {
 				qb.where('note.channelId IN (:...followingChannelIds)', { followingChannelIds });
 				qb.orWhere('note.channelId IS NULL');
 			}));
 		} else {
 			query.andWhere('note.channelId IS NULL');
+		}
+
+		if (mutingChannelIds.length > 0) {
+			query.andWhere(new Brackets(qb => {
+				qb.orWhere('note.renoteChannelId IS NULL');
+				qb.orWhere('note.renoteChannelId NOT IN (:...mutingChannelIds)', { mutingChannelIds });
+			}));
 		}
 
 		if (!ps.withReplies) {
@@ -244,8 +271,8 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		}
 
 		this.queryService.generateVisibilityQuery(query, me);
-		this.queryService.generateMutedUserQuery(query, me);
-		this.queryService.generateBlockedUserQuery(query, me);
+		this.queryService.generateMutedUserQueryForNotes(query, me);
+		this.queryService.generateBlockedUserQueryForNotes(query, me);
 		this.queryService.generateMutedUserRenotesQueryForNotes(query, me);
 
 		if (ps.withFiles) {
